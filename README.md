@@ -35,7 +35,7 @@ A high-security credential generator for robust account management.
 Clone the repository:
 ```bash
 git clone https://github.com/Dhanvin-kadiir/Data-Forger.git
-cd dataforger
+cd Data-Forger
 ```
 
 ---
