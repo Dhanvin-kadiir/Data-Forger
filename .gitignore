@@ -1,43 +1,39 @@
-# ═══════════════════════════════════════════════
-#  DATA-FORGER // GHOST SYSTEM — .gitignore
-# ═══════════════════════════════════════════════
+# ===============================================
+#  DATA-FORGER // GHOST SYSTEM -- .gitignore
+# ===============================================
 
-# ── Sensitive runtime data files (NEVER commit) ──
+# -- Sensitive runtime vault files (NEVER commit) --
 titan_identities.txt
 titan_keys.txt
 *.txt
 
-# ── Java compiled artifacts ──
+# -- Java compiled artifacts --
 *.class
 *.jar
 
-# ── Maven build output ──
+# -- Maven build output (not used, kept for safety) --
 target/
-!.mvn/wrapper/maven-wrapper.jar
 
-# ── Log files ──
+# -- Log files --
 *.log
-logs/
 
-# ── IDE — VS Code ──
+# -- IDE -- VS Code --
 .vscode/
 
-# ── IDE — IntelliJ IDEA ──
+# -- IDE -- IntelliJ IDEA --
 .idea/
 *.iml
-*.iws
-*.ipr
 
-# ── IDE — Eclipse ──
+# -- IDE -- Eclipse --
 .classpath
 .project
 .settings/
 bin/
 
-# ── OS generated files ──
+# -- OS generated files --
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ── UI stitch design reference files (raw design exports, not production code) ──
+# -- Raw UI design stitch exports (not production code) --
 UI/

@@ -1,128 +1,95 @@
 <div align="center">
 
-<img src="logo.png" alt="DATA-FORGER Logo" width="220px"/>
+<img src="logo.png" alt="DATA-FORGER Logo" width="200px"/>
 
 # DATA-FORGER // GHOST SYSTEM
 
-**A cybersecurity-themed synthetic data toolkit**  
-*Generate ghost identities. Forge cryptographic keys. Own the dark.*
+**Cybersecurity synthetic data toolkit — forge identities & keys**
 
-[![Java](https://img.shields.io/badge/Java-17%2B-3cf91a?style=flat-square&logo=openjdk&logoColor=black&labelColor=000)](https://adoptium.net/)
-[![Maven](https://img.shields.io/badge/Maven-3.8%2B-3cf91a?style=flat-square&logo=apachemaven&logoColor=black&labelColor=000)](https://maven.apache.org/)
-[![Javalin](https://img.shields.io/badge/Javalin-6.3-3cf91a?style=flat-square&labelColor=000)](https://javalin.io/)
-[![License](https://img.shields.io/badge/License-Educational-3cf91a?style=flat-square&labelColor=000)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-17%2B-3cf91a?style=flat-square&logo=openjdk&logoColor=black&labelColor=111)](https://adoptium.net/)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-ZERO-3cf91a?style=flat-square&labelColor=111)](.)
+[![License](https://img.shields.io/badge/Use-Educational-3cf91a?style=flat-square&labelColor=111)](.)
 
 </div>
 
 ---
 
 ```
- ____   __  ____   __       ____  __  ____   __  ____  ____ 
-(    \ (  )(  __) /  \     (  __)(  )(  _ \ /  \(  _ \(  _ \
- ) D (  )(  ) _) (  O )___  ) _)  )(  )   /(  O ))   / )   /
-(____/ (__)(____) \__/(___)(__)  (__)(__\_) \__/(__\_)(__\_)
+'########:::::'###::::'########::::'###:::::::'########::'#######::'########:::'######:::'########:
+ ##.... ##:::'## ##:::... ##..::::'## ##:::::: ##.....::'##.... ##: ##.... ##:'##... ##:: ##.....::
+ ##:::: ##::'##:. ##::::: ##:::::'##:. ##::::: ##::::::: ##:::: ##: ##:::: ##: ##:::..::: ##:::::::
+ ##:::: ##:'##:::. ##:::: ##::::'##:::. ##:::: ######::: ##:::: ##: ########:: ##::'####: ######:::
+ ##:::: ##: #########:::: ##:::: #########:::: ##...:::: ##:::: ##: ##.. ##::: ##::: ##:: ##...::::
+ ##:::: ##: ##.... ##:::: ##:::: ##.... ##:::: ##::::::: ##:::: ##: ##::. ##:: ##::: ##:: ##:::::::
+ ########:: ##:::: ##:::: ##:::: ##:::: ##:::: ##:::::::. #######:: ##:::. ##:. ######::: ########:
+........:::..:::::..:::::..:::::..:::::..:::::..:::::::::.......:::..:::::..:::......::::........::
 ```
 
-## What Is This?
+## Overview
 
-**DATA-FORGER** is a Java 17 cybersecurity toolkit with a full web UI served by an embedded [Javalin](https://javalin.io/) server. It exposes two core modules:
+DATA-FORGER is a **Java 17** cybersecurity toolkit with a browser-based CRT-aesthetic UI served by Java's built-in HTTP server — **zero external dependencies, no Maven, no Node.js.**
 
-- **🎭 Identity Forger** — Generates realistic ghost personas from a pool of **254 unique, globally-diverse names**
-- **🔐 TitanVault** — Forges cryptographically-secure passwords with an adjustable length from **10 to 32 characters**
-
-All UI interactions are wired to a live Java REST backend — no frameworks, no Node, no nonsense.
-
----
-
-## Features
-
-### 🎭 Identity Forger (`TitanIdentity`)
-
-| Feature | Detail |
-|---------|--------|
-| Name Pool | **254 unique first names** across 12 cultural groups |
-| Cultures Covered | Western, Russian, Japanese, Korean, Chinese, Indian, Arabic, African, Latin, Nordic, Gender-Neutral, Cyber Handles |
-| Randomisation | `SecureRandom` — cryptographically unpredictable |
-| Output | Alias, Date of Birth, Age, Global Origin |
-| Persistence | Save with a custom tag → `titan_identities.txt` |
-
-### 🔐 TitanVault (`TitanVault`)
-
-| Feature | Detail |
-|---------|--------|
-| Length Range | **10 – 32 characters** (enforced server-side) |
-| Character Classes | Lowercase + Uppercase + Digits + Special (90-char pool) |
-| Minimum Coverage | ≥1 char guaranteed from every class |
-| Shuffle | Fisher-Yates algorithm for true randomness |
-| Entropy | ~130 bits at 20 chars — overkill in the best way |
-| Persistence | Auto-saved with timestamp → `titan_keys.txt` |
-
-### 🖥️ Web UI
-
-- Dark hacker/CRT aesthetic — scanlines, glitch animations, phosphor glow
-- Single-page app with 5 panels: Main Console, Identity Forger, TitanVault, Schema Editor, Output Buffer
-- Live entropy display, copy-to-clipboard, real-time backend status dot
+| Module | What it does |
+|--------|-------------|
+| **Identity Forger** | Generates ghost personas from 254 globally-diverse names |
+| **TitanVault** | Forges cryptographic passwords, length slider 10–32 chars |
 
 ---
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
+- **[Java 17+](https://adoptium.net/)** — that's literally it
 
-- [Java 17+](https://adoptium.net/)
-- [Apache Maven 3.8+](https://maven.apache.org/download.cgi)
+### Run
 
-### Clone & Run
-
-```bash
+```batch
 git clone https://github.com/Dhanvin-kadiir/Data-Forger.git
 cd Data-Forger
-```
-
-**Windows:**
-```batch
 run.bat
 ```
 
-**Unix / macOS:**
-```bash
-bash run.sh
-```
+Then open **http://localhost:7070** in your browser (it opens automatically).
 
-Then open **[http://localhost:7070](http://localhost:7070)** in your browser.
+> `run.bat` compiles the 3 Java files with `javac` and starts the server. No build tools needed.
 
-> The launcher builds a fat JAR with Maven, then starts the server automatically.
+---
+
+## Modules
+
+### Identity Forger
+- **254 unique first names** across 12 cultural groups: Western, Russian, Japanese, Korean, Chinese, Indian, Arabic, African, Latin, Nordic, Gender-Neutral, Cyber Handles
+- `SecureRandom` — cryptographically unpredictable selection
+- Configurable tag-based saving to `titan_identities.txt`
+
+### TitanVault  
+- Password length **10 – 32 characters** (slider in UI, clamped server-side)
+- Guarantees ≥1 char from every class: lowercase + uppercase + digits + special (90-char pool)
+- Fisher-Yates shuffle ensures no predictable ordering
+- ~**131 bits of entropy** at 32-char max length
+- Auto-saved with timestamp to `titan_keys.txt`
 
 ---
 
 ## REST API
 
-The Javalin server exposes a simple JSON API that the UI calls via `fetch()`:
+The Java server exposes a simple JSON API the UI calls via `fetch()`:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/status` | Health check |
+| `GET`  | `/api/status` | Health check |
 | `POST` | `/api/identity/forge` | Generate a ghost identity |
-| `POST` | `/api/identity/save` | Commit identity to vault file |
-| `POST` | `/api/vault/generate` | Generate + save a password |
+| `POST` | `/api/identity/save` | Save identity to vault file |
+| `POST` | `/api/vault/generate` | Generate + auto-save password |
 
-**Example — Forge a password:**
+**Example:**
 ```bash
 curl -X POST http://localhost:7070/api/vault/generate \
   -H "Content-Type: application/json" \
-  -d '{"accountName": "Gmail Main", "length": 24}'
+  -d "{\"accountName\":\"Gmail\",\"length\":24}"
 ```
-
 ```json
-{
-  "success": true,
-  "status": "KEY_FORGED",
-  "data": {
-    "accountName": "Gmail Main",
-    "password": "mK#9@vLzQ2!nPxR3$dWsY7&f",
-    "length": 24
-  }
-}
+{"success":true,"status":"KEY_FORGED","data":{"accountName":"Gmail","password":"mK#9@vQ2!nR3$dWsY7","length":24}}
 ```
 
 ---
@@ -131,49 +98,44 @@ curl -X POST http://localhost:7070/api/vault/generate \
 
 ```
 Data-Forger/
-│
-├── src/
-│   └── main/
-│       ├── java/com/dataforger/
-│       │   ├── DataForgerServer.java       ← Javalin HTTP server + REST routes
-│       │   ├── IdentityForgerService.java  ← Ghost identity engine (254 names)
-│       │   └── TitanVaultService.java      ← Password forge (length 10–32)
-│       │
-│       └── resources/static/
-│           └── index.html                  ← Unified CRT web UI (all 5 panels)
-│
-├── TitanIdentity.java                      ← Standalone CLI version
-├── TitanVault.java                         ← Standalone CLI version
-├── pom.xml                                 ← Maven build (Javalin + Jackson)
-├── run.bat                                 ← Windows launcher
-├── run.sh                                  ← Unix/Mac launcher
-├── logo.png
-└── README.md
+|
+|-- DataForgerServer.java       <- HTTP server + REST routes (built-in HttpServer)
+|-- IdentityForgerService.java  <- Ghost identity engine (254 names)
+|-- TitanVaultService.java      <- Password forge (length 10-32)
+|-- TitanIdentity.java          <- Standalone CLI version (no server needed)
+|-- TitanVault.java             <- Standalone CLI version (no server needed)
+|
+|-- static/
+|   `-- index.html              <- Full CRT web UI (5 panels, vanilla JS)
+|
+|-- run.bat                     <- Windows: compile + launch
+|-- logo.png
+`-- README.md
 ```
 
-### Output Files *(git-ignored — never committed)*
+### Runtime output files *(git-ignored — never committed)*
 
 | File | Contents |
 |------|----------|
 | `titan_identities.txt` | Saved ghost profiles with tags |
-| `titan_keys.txt` | Timestamped account:password pairs |
+| `titan_keys.txt` | Timestamped account : password pairs |
 
 > [!CAUTION]
-> These files contain sensitive generated data. They are excluded from git via `.gitignore`. **Never commit them.**
+> These files contain generated sensitive data. They are excluded by `.gitignore`. **Never commit them.**
 
 ---
 
-## Standalone CLI Mode
+## Standalone CLI (No Server)
 
-You can also run each module directly without Maven or the web server:
+Each module also works as a plain command-line program:
 
 ```bash
-# Compile
-javac TitanIdentity.java
-javac TitanVault.java
-
-# Run
+# Identity Forger
+javac -encoding UTF-8 TitanIdentity.java
 java TitanIdentity
+
+# TitanVault
+javac -encoding UTF-8 TitanVault.java
 java TitanVault
 ```
 
@@ -184,28 +146,20 @@ java TitanVault
 | Layer | Technology |
 |-------|-----------|
 | Language | Java 17 |
-| HTTP Server | Javalin 6.3 (embedded Jetty) |
-| JSON | Jackson Databind 2.17 |
-| Build | Apache Maven 3.8+ |
-| Frontend | Vanilla HTML/CSS/JS (no framework) |
-| Fonts | VT323, Fira Code, Space Grotesk |
+| HTTP Server | `com.sun.net.httpserver.HttpServer` (JDK built-in) |
 | Randomness | `java.security.SecureRandom` |
+| Frontend | Vanilla HTML / CSS / JS |
+| Fonts | VT323, Share Tech Mono, Orbitron (Google Fonts) |
+| Build | None — plain `javac` |
+| Dependencies | **Zero** |
 
 ---
-
-## Security & Ethics
 
 > [!WARNING]
-> This tool is for **educational, ethical testing, and privacy-aware development** purposes only.
-> - Do **not** use generated identities to deceive or impersonate real individuals
-> - Do **not** use this tool for unauthorized account creation
-> - Always follow your country's privacy and cybersecurity laws
-
----
+> For **educational and ethical testing purposes only.** Do not use generated identities to impersonate real people or create unauthorized accounts.
 
 <div align="center">
 
-**// GHOST SYSTEM ONLINE //**  
 `root@forger:~# _`
 
 </div>
