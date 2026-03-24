@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DATA-FORGER // GHOST SYSTEM v1.0</title>
+  <meta name="description" content="Cybersecurity toolkit: Identity Forger and TitanVault password generator."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Fira+Code:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ═══════════════════════════════════════════════
+       ROOT DESIGN TOKENS
+    ═══════════════════════════════════════════════ */
+    :root {
+      --primary:    #3cf91a;
+      --primary-dim: #1F5120;
+      --bg:         #000000;
+      --surface:    #040d04;
+      --accent:     #FF3366;
+      --accent-dim: #4a0016;
+      --muted:      #1a3a1a;
+      --text:       #3cf91a;
+      --text-dim:   #256618;
+      --font-mono:  'Fira Code', monospace;
+      --font-head:  'VT323', monospace;
+      --font-body:  'Space Grotesk', sans-serif;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      overflow-x: hidden;
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CRT EFFECTS
+    ═══════════════════════════════════════════════ */
+    #crt-overlay {
+      position: fixed; inset: 0;
+      background:
+        linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.22) 50%),
+        linear-gradient(90deg, rgba(255,0,0,0.04), rgba(0,255,0,0.015), rgba(0,0,255,0.04));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    #crt-vignette {
+      position: fixed; inset: 0;
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.85);
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TYPOGRAPHY UTILITIES
+    ═══════════════════════════════════════════════ */
+    .glow    { text-shadow: 0 0 6px rgba(60,249,26,0.7); }
+    .glow-sm { text-shadow: 0 0 3px rgba(60,249,26,0.5); }
+    .accent-glow { color: var(--accent); text-shadow: 0 0 6px rgba(255,51,102,0.7); }
+
+    .vt { font-family: var(--font-head); letter-spacing: 0.05em; }
+    .mono { font-family: var(--font-mono); }
+
+    /* ═══════════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════════ */
+    @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes pulse-glow {
+      0%,100%{ text-shadow: 0 0 4px rgba(60,249,26,0.5); }
+      50%    { text-shadow: 0 0 14px rgba(60,249,26,1); }
+    }
+    @keyframes glitch {
+      0%   { transform: skew(0deg);   text-shadow: none; }
+      20%  { transform: skew(-8deg);  text-shadow: -2px 0 red, 2px 0 blue; }
+      40%  { transform: skew(8deg);   text-shadow:  2px 0 red,-2px 0 blue; }
+      60%  { transform: skew(-4deg);  text-shadow: -1px 0 red, 1px 0 blue; }
+      80%  { transform: skew(4deg);   text-shadow:  1px 0 red,-1px 0 blue; }
+      100% { transform: skew(0deg);   text-shadow: none; }
+    }
+    @keyframes scanline {
+      0%   { top: -2px; }
+      100% { top: 100%; }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0);   }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .blink      { animation: blink 1s step-end infinite; }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+    .scanline-anim {
+      position: fixed; left:0; width:100%; height:2px;
+      background: rgba(60,249,26,0.08);
+      pointer-events: none; z-index: 9997;
+      animation: scanline 8s linear infinite;
+    }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT — SIDEBAR + MAIN
+    ═══════════════════════════════════════════════ */
+    #app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--primary-dim);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 100;
+    }
+    #sidebar-logo {
+      padding: 24px 16px 16px;
+      border-bottom: 1px solid var(--primary-dim);
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+      color: var(--primary);
+      text-shadow: 0 0 8px rgba(60,249,26,0.8);
+      line-height: 1;
+    }
+    #sidebar-logo span { display: block; font-size: 0.6rem; color: var(--text-dim); font-family: var(--font-mono); margin-top:4px; }
+
+    #sidebar nav { flex: 1; padding: 12px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.08s;
+      border-left: 3px solid transparent;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--primary); background: rgba(60,249,26,0.04); }
+    .nav-item.active {
+      color: var(--primary);
+      background: rgba(60,249,26,0.07);
+      border-left-color: var(--primary);
+    }
+    .nav-item .material-symbols-outlined { font-size: 1.1rem; }
+
+    #sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--primary-dim);
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* MAIN CONTENT */
+    #content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOP BAR */
+    #topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--primary-dim);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    #topbar .breadcrumb { color: var(--primary); }
+    #topbar .status { display: flex; align-items: center; gap: 8px; }
+    #status-dot { width:7px; height:7px; border-radius:50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); display:inline-block; }
+    #status-dot.offline { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+    /* PANELS */
+    #panel-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px;
+    }
+
+    /* Page sections (hidden by default, shown via JS) */
+    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+
+    /* ═══════════════════════════════════════════════
+       SHARED COMPONENT STYLES
+    ═══════════════════════════════════════════════ */
+    .page-title {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--primary);
+      text-shadow: 0 0 8px rgba(60,249,26,0.6);
+      margin-bottom: 4px;
+    }
+    .page-subtitle {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--primary-dim);
+      padding-bottom: 12px;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--primary-dim);
+      padding: 24px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .card-title {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before { content:'//'; color: var(--primary); }
+
+    /* OUTPUT BOX */
+    .output-box {
+      background: #000;
+      border: 1px solid var(--primary-dim);
+      padding: 16px;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      min-height: 80px;
+      position: relative;
+    }
+    .output-row { display: flex; justify-content: space-between; gap: 16px; }
+    .output-label { color: var(--text-dim); min-width: 90px; }
+    .output-value { color: var(--primary); text-shadow: 0 0 4px rgba(60,249,26,0.5); word-break: break-all; }
+    .output-value.accent-val { color: var(--accent); text-shadow: 0 0 4px rgba(255,51,102,0.5); }
+
+    /* BUTTON */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      font-family: var(--font-head);
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.08s;
+      text-shadow: 0 0 4px rgba(60,249,26,0.5);
+      position: relative;
+    }
+    .btn:hover  { background: var(--primary); color: #000; text-shadow: none; }
+    .btn:active { animation: glitch 0.15s linear; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.danger { border-color: var(--accent); color: var(--accent); text-shadow: 0 0 4px rgba(255,51,102,0.5); }
+    .btn.danger:hover { background: var(--accent); color: #000; text-shadow: none; }
+    .btn.small  { font-size: 0.8rem; padding: 6px 14px; }
+
+    /* FORM ELEMENTS */
+    .field-group  { margin-bottom: 20px; }
+    .field-label  { display: block; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 6px; }
+    .field-input  {
+      width: 100%;
+      background: #000;
+      border: 1px solid var(--primary-dim);
+      color: var(--primary);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: all 0.1s;
+    }
+    .field-input:focus { border-color: var(--primary); background: #001400; box-shadow: 0 0 8px rgba(60,249,26,0.15); }
+    .field-input::placeholder { color: var(--text-dim); opacity: 0.6; text-transform: none; }
+
+    /* RANGE SLIDER */
+    .range-wrapper { display: flex; align-items: center; gap: 16px; }
+    #length-display {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--primary);
+      text-shadow: 0 0 6px rgba(60,249,26,0.7);
+      min-width: 3ch;
+      text-align: center;
+    }
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      background: var(--muted);
+      height: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: var(--primary);
+      box-shadow: 0 0 6px var(--primary);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px;
+      background: var(--primary);
+      box-shadow: 0 0 6px var(--primary);
+      border: none;
+      cursor: pointer;
+    }
+    .range-labels { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* LOADING SPINNER */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--primary-dim);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    /* NOTIFICATION */
+    #notification {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--primary);
+      padding: 12px 20px;
+      font-size: 0.75rem;
+      z-index: 9000;
+      max-width: 320px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    #notification.error { border-color: var(--accent); color: var(--accent); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; background: #000; border-left: 1px solid var(--muted); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* CONSOLE LOG */
+    .log-area {
+      background: #000;
+      border: 1px solid var(--primary-dim);
+      padding: 12px 16px;
+      font-size: 0.73rem;
+      height: 180px;
+      overflow-y: auto;
+      line-height: 1.7;
+      font-family: var(--font-mono);
+    }
+    .log-info    { color: var(--text-dim); }
+    .log-ok      { color: var(--primary); }
+    .log-err     { color: var(--accent); }
+    .log-process { color: #66ff44; }
+
+    /* COPY BUTTON */
+    .copy-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: transparent;
+      border: 1px solid var(--primary-dim);
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.1s;
+    }
+    .copy-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* GRID */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* TAG BADGE */
+    .badge {
+      display: inline-block;
+      border: 1px solid var(--primary-dim);
+      color: var(--text-dim);
+      font-size: 0.6rem;
+      padding: 2px 8px;
+    }
+    .badge.ok  { border-color: var(--primary); color: var(--primary); }
+    .badge.err { border-color: var(--accent);  color: var(--accent);  }
+
+    /* TABLE */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .data-table th { text-align: left; padding: 8px 12px; color: var(--text-dim); border-bottom: 1px solid var(--primary-dim); }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid #0a180a; }
+    .data-table tr:hover td { background: rgba(60,249,26,0.03); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      #panel-area { padding: 16px; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- CRT Effects -->
+<div id="crt-overlay"></div>
+<div id="crt-vignette"></div>
+<div class="scanline-anim"></div>
+
+<!-- Notification Toast -->
+<div id="notification"></div>
+
+<div id="app">
+  <!-- ════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════ -->
+  <aside id="sidebar">
+    <div id="sidebar-logo">
+      DATA-FORGER
+      <span>GHOST SYSTEM v1.0 // ROOT ACCESS</span>
+    </div>
+
+    <nav>
+      <div class="nav-item active" data-page="console" id="nav-console">
+        <span class="material-symbols-outlined">terminal</span>
+        MAIN CONSOLE
+      </div>
+      <div class="nav-item" data-page="identity" id="nav-identity">
+        <span class="material-symbols-outlined">person_pin</span>
+        IDENTITY FORGER
+      </div>
+      <div class="nav-item" data-page="vault" id="nav-vault">
+        <span class="material-symbols-outlined">lock</span>
+        TITAN VAULT
+      </div>
+      <div class="nav-item" data-page="schema" id="nav-schema">
+        <span class="material-symbols-outlined">data_object</span>
+        SCHEMA EDITOR
+      </div>
+      <div class="nav-item" data-page="output" id="nav-output">
+        <span class="material-symbols-outlined">output</span>
+        OUTPUT BUFFER
+      </div>
+    </nav>
+
+    <div id="sidebar-footer">
+      SYS.OP.: NOMINAL<br/>
+      MEMORY: 640K OK<br/>
+      PID: <span id="pid-display">—</span><br/>
+      UPTIME: <span id="uptime-display">00:00:00</span>
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════ -->
+  <div id="content">
+    <!-- Top Bar -->
+    <div id="topbar">
+      <span class="breadcrumb">root@forger:~/<span id="topbar-path">init_main_console</span>#</span>
+      <div class="status">
+        <span id="status-dot"></span>
+        <span id="status-text">CONNECTING...</span>
+        <span class="blink">█</span>
+      </div>
+    </div>
+
+    <div id="panel-area">
+
+      <!-- ╔══════════════════════════════════
+           PAGE: MAIN CONSOLE
+      ══════════════════════════════════╝ -->
+      <section class="page active" id="page-console">
+        <div class="page-title glow">&#62; ls -la /modules</div>
+        <div class="page-subtitle">root@forger:~/init_main_console# — GHOST SYSTEM ONLINE</div>
+
+        <pre class="glow" style="font-size:0.55rem;line-height:1.15;margin-bottom:24px;color:var(--primary)">
+ ____   __  ____   __       ____  __  ____   __  ____  ____ 
+(    \ (  )(  __) /  \     (  __)(  )(  _ \ /  \(  _ \(  _ \
+ ) D (  )(  ) _) (  O )___  ) _)  )(  )   /(  O ))   / )   /
+(____/ (__)(____) \__/(___)(__)  (__)(__\_) \__/(__\_)(__\_)</pre>
+
+        <div class="card">
+          <div class="card-title">SYSTEM STATUS</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.75rem;">
+            <div><span class="output-label">BACKEND:</span> <span id="console-backend-status" class="output-value">CHECKING...</span></div>
+            <div><span class="output-label">SERVER:</span> <span class="output-value">localhost:7070</span></div>
+            <div><span class="output-label">ENGINE:</span> <span class="output-value">Javalin 6.3 // Java 17</span></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" style="cursor:pointer;" onclick="navigate('identity')">
+            <div class="card-title">MODULE: IDENTITY FORGER</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;">
+              Generates ghost identities from a pool of <strong style="color:var(--primary)">254 unique names</strong>.
+              Randomises DOB, age, and global location.
+            </div>
+            <div style="margin-top:12px;"><span class="badge ok">ONLINE</span></div>
+            <div style="margin-top:16px;text-align:right;font-size:0.65rem;color:var(--primary)">&#62;&#62; ENTER MODULE →</div>
+          </div>
+          <div class="card" style="cursor:pointer;" onclick="navigate('vault')">
+            <div class="card-title">MODULE: TITAN VAULT</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;">
+              Generates cryptographically-secure passwords.
+              Length range: <strong style="color:var(--primary)">10 – 32 characters</strong>. Uses SecureRandom + Fisher-Yates shuffle.
+            </div>
+            <div style="margin-top:12px;"><span class="badge ok">ONLINE</span></div>
+            <div style="margin-top:16px;text-align:right;font-size:0.65rem;color:var(--primary)">&#62;&#62; ENTER MODULE →</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">SYSTEM LOG</div>
+          <div class="log-area" id="console-log">
+            <p class="log-info">[BOOT] Initialising Ghost System...</p>
+            <p class="log-info">[BOOT] Loading modules: TitanIdentity, TitanVault</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════
+           PAGE: IDENTITY FORGER
+      ══════════════════════════════════╝ -->
+      <section class="page" id="page-identity">
+        <div class="page-title glow">&#62; TITAN_IDENTITY // GHOST PROFILE FORGE</div>
+        <div class="page-subtitle">root@forger:~/titan_identity# — [EXEC] generating ghost persona</div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+          <button class="btn" id="btn-forge-identity" onclick="forgeIdentity()">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">person_add</span>
+            [ FORGE IDENTITY ]
+          </button>
+          <button class="btn small" id="btn-save-identity" onclick="openSaveDialog()" disabled>
+            <span class="material-symbols-outlined" style="font-size:0.9rem;">save</span>
+            COMMIT TO VAULT
+          </button>
+        </div>
+
+        <!-- Output Display -->
+        <div class="card">
+          <div class="card-title">FORGED GHOST PROFILE</div>
+          <div class="output-box" id="identity-output-box">
+            <div class="output-row">
+              <span class="output-label">ALIAS:</span>
+              <span class="output-value" id="id-name">—</span>
+            </div>
+            <div class="output-row">
+              <span class="output-label">DOB:</span>
+              <span class="output-value" id="id-dob">—</span>
+            </div>
+            <div class="output-row">
+              <span class="output-label">AGE:</span>
+              <span class="output-value" id="id-age">—</span>
+            </div>
+            <div class="output-row">
+              <span class="output-label">ORIGIN:</span>
+              <span class="output-value" id="id-location">—</span>
+            </div>
+            <div class="output-row" style="margin-top:8px;">
+              <span class="output-label">STATUS:</span>
+              <span class="output-value blink" id="id-status" style="color:var(--text-dim);">AWAITING FORGE...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Tag Dialog (hidden) -->
+        <div class="card" id="save-dialog" style="display:none;">
+          <div class="card-title">COMMIT IDENTITY TO VAULT</div>
+          <div class="field-group">
+            <label class="field-label" for="id-tag">IDENTITY TAG (e.g. Steam Alt, Burner, NSFW):</label>
+            <input class="field-input" type="text" id="id-tag" placeholder="tag_this_identity"/>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button class="btn small" onclick="saveIdentity()">[ COMMIT ]</button>
+            <button class="btn small danger" onclick="cancelSave()">[ CANCEL ]</button>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card">
+          <div class="card-title">OPERATION LOG</div>
+          <div class="log-area" id="identity-log">
+            <p class="log-info">[READY] Identity Forger online. Press [FORGE IDENTITY] to begin.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════
+           PAGE: TITAN VAULT
+      ══════════════════════════════════╝ -->
+      <section class="page" id="page-vault">
+        <div class="page-title glow">&#62; TITAN_VAULT // SECURE KEY FORGE</div>
+        <div class="page-subtitle">root@forger:~/titan_vault# — [EXEC] generating cryptographic key</div>
+
+        <div class="grid-2">
+          <!-- Config -->
+          <div class="card">
+            <div class="card-title">KEY PARAMETERS</div>
+
+            <div class="field-group">
+              <label class="field-label" for="vault-account">ACCOUNT NAME:</label>
+              <input class="field-input" type="text" id="vault-account" placeholder="e.g. gmail_main, steam_alt"/>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">KEY_LENGTH = <span id="length-display" class="glow">20</span> CHARS</label>
+              <div class="range-wrapper">
+                <span style="font-size:0.65rem;color:var(--text-dim);">10</span>
+                <input type="range" id="length-slider" min="10" max="32" value="20"
+                       oninput="updateLengthDisplay(this.value)"/>
+                <span style="font-size:0.65rem;color:var(--text-dim);">32</span>
+              </div>
+              <div class="range-labels">
+                <span>MIN</span><span>MAX</span>
+              </div>
+            </div>
+
+            <button class="btn" id="btn-generate-pass" onclick="generatePassword()" style="width:100%;justify-content:center;">
+              <span class="material-symbols-outlined" style="font-size:1.1rem;">key</span>
+              [ FORGE KEY ]
+            </button>
+          </div>
+
+          <!-- Output -->
+          <div class="card">
+            <div class="card-title">FORGED KEY OUTPUT</div>
+            <div class="output-box" style="position:relative;">
+              <button class="copy-btn" onclick="copyPassword()" id="copy-btn">[ COPY ]</button>
+              <div class="output-row">
+                <span class="output-label">ACCOUNT:</span>
+                <span class="output-value" id="vault-account-out">—</span>
+              </div>
+              <div class="output-row" style="margin-top:8px;">
+                <span class="output-label">KEY:</span>
+                <span class="output-value accent-val" id="vault-password-out" style="font-size:1rem;letter-spacing:0.08em;">—</span>
+              </div>
+              <div class="output-row">
+                <span class="output-label">LENGTH:</span>
+                <span class="output-value" id="vault-length-out">—</span>
+              </div>
+              <div class="output-row">
+                <span class="output-label">STATUS:</span>
+                <span class="output-value blink" id="vault-status" style="color:var(--text-dim);">AWAITING INPUT...</span>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;font-size:0.65rem;color:var(--text-dim);line-height:1.8;">
+              All keys are automatically committed to <span style="color:var(--primary)">titan_keys.txt</span>.<br/>
+              SecureRandom + Fisher-Yates shuffle ensures maximum entropy.
+            </div>
+          </div>
+        </div>
+
+        <!-- Strength Indicator -->
+        <div class="card">
+          <div class="card-title">ENTROPY ANALYSIS</div>
+          <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:6px;">CHARSET POOL</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="badge ok">LOWER [26]</span>
+                <span class="badge ok">UPPER [26]</span>
+                <span class="badge ok">DIGITS [10]</span>
+                <span class="badge ok">SPECIAL [28]</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:6px;">POOL SIZE</div>
+              <div style="font-family:var(--font-head);font-size:1.6rem;color:var(--primary);text-shadow:0 0 6px rgba(60,249,26,0.7);">90 CHARS</div>
+            </div>
+            <div>
+              <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:6px;">ENTROPY @ <span id="entropy-len">20</span> CHARS</div>
+              <div style="font-family:var(--font-head);font-size:1.6rem;color:var(--primary);text-shadow:0 0 6px rgba(60,249,26,0.7);"><span id="entropy-bits">130.9</span> BITS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card">
+          <div class="card-title">OPERATION LOG</div>
+          <div class="log-area" id="vault-log">
+            <p class="log-info">[READY] TitanVault online. Configure parameters and press [FORGE KEY].</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════
+           PAGE: SCHEMA EDITOR
+      ══════════════════════════════════╝ -->
+      <section class="page" id="page-schema">
+        <div class="page-title glow">&#62; BUILD_SCHEMA // DEFINITION EDITOR</div>
+        <div class="page-subtitle">root@forger:~/build_schema# — define field structure for data generation</div>
+
+        <div class="grid-2" style="align-items:start;">
+          <!-- Builder -->
+          <div class="card">
+            <div class="card-title">SCHEMA_DEFINITION</div>
+            <div id="schema-fields">
+              <!-- Fields rendered by JS -->
+            </div>
+            <button class="btn small" onclick="addSchemaField()" style="margin-top:12px;">
+              [+] ADD_FIELD
+            </button>
+          </div>
+          <!-- JSON Preview -->
+          <div class="card">
+            <div class="card-title">LIVE_PREVIEW.JSON</div>
+            <pre class="output-box" id="schema-preview" style="min-height:200px;font-size:0.75rem;overflow:auto;"></pre>
+            <button class="btn" onclick="showNotification('Schema compiled — connect to generator to execute.','ok')" style="width:100%;justify-content:center;margin-top:12px;">
+              [ COMPILE_SCHEMA ]
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ╔══════════════════════════════════
+           PAGE: OUTPUT BUFFER
+      ══════════════════════════════════╝ -->
+      <section class="page" id="page-output">
+        <div class="page-title glow">&#62; STDOUT // OUTPUT BUFFER</div>
+        <div class="page-subtitle">root@forger:~/stdout# — live process output stream</div>
+
+        <div class="card">
+          <div class="card-title">PROCESS STREAM</div>
+          <div class="log-area" id="output-log" style="height:320px;">
+            <p class="log-info">[INFO] Waiting for a generation job...</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">DOWNLOAD PAYLOAD</div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:16px;line-height:1.8;">
+            Saved identity profiles are stored in <span style="color:var(--primary)">titan_identities.txt</span>.<br/>
+            Generated passwords are stored in <span style="color:var(--primary)">titan_keys.txt</span>.<br/>
+            Both files are located in the server working directory.
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn small" onclick="showNotification('File: titan_keys.txt saved to working directory.','ok')">
+              <span class="material-symbols-outlined" style="font-size:0.9rem;">download</span>
+              TITAN_KEYS.TXT
+            </button>
+            <button class="btn small" onclick="showNotification('File: titan_identities.txt saved to working directory.','ok')">
+              <span class="material-symbols-outlined" style="font-size:0.9rem;">download</span>
+              TITAN_IDENTITIES.TXT
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /panel-area -->
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  GHOST SYSTEM CLIENT SCRIPT
+//  Connects UI actions → Java REST API at /api/*
+// ═══════════════════════════════════════════════════════
+
+const API = ''; // Same origin — Javalin serves this file
+
+// ── NAVIGATION ──────────────────────────────────────────
+let currentPage = 'console';
+const PAGE_MAP = {
+  console:  { path: 'init_main_console',    topbar: 'init_main_console' },
+  identity: { path: 'titan_identity',       topbar: 'titan_identity'    },
+  vault:    { path: 'titan_vault',          topbar: 'titan_vault'       },
+  schema:   { path: 'build_schema_editor',  topbar: 'build_schema'      },
+  output:   { path: 'stdout_output_buffer', topbar: 'stdout_output'     },
+};
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  document.getElementById('topbar-path').textContent = PAGE_MAP[page].topbar;
+  currentPage = page;
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => navigate(item.dataset.page));
+});
+
+// ── STATUS / UPTIME ─────────────────────────────────────
+let uptimeSeconds = 0;
+setInterval(() => {
+  uptimeSeconds++;
+  const h = String(Math.floor(uptimeSeconds / 3600)).padStart(2,'0');
+  const m = String(Math.floor((uptimeSeconds % 3600) / 60)).padStart(2,'0');
+  const s = String(uptimeSeconds % 60).padStart(2,'0');
+  document.getElementById('uptime-display').textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+document.getElementById('pid-display').textContent = Math.floor(10000 + Math.random() * 89999);
+
+// ── API HEALTH CHECK ────────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(API + '/api/status');
+    const j = await r.json();
+    if (j.success) {
+      document.getElementById('status-dot').classList.remove('offline');
+      document.getElementById('status-text').textContent = 'SYSTEM ONLINE';
+      document.getElementById('console-backend-status').textContent = 'ONLINE';
+      document.getElementById('console-backend-status').style.color = 'var(--primary)';
+      appendLog('console-log', '[OK] Backend connection established.', 'ok');
+    }
+  } catch(e) {
+    document.getElementById('status-dot').classList.add('offline');
+    document.getElementById('status-text').textContent = 'BACKEND OFFLINE';
+    document.getElementById('console-backend-status').textContent = 'OFFLINE — run ./run.bat';
+    document.getElementById('console-backend-status').style.color = 'var(--accent)';
+    appendLog('console-log', '[ERR] Cannot reach backend. Is the Java server running?', 'err');
+  }
+}
+checkStatus();
+
+// ── LOGGING ─────────────────────────────────────────────
+function appendLog(logId, msg, type='info') {
+  const log = document.getElementById(logId);
+  if (!log) return;
+  const p = document.createElement('p');
+  p.textContent = msg;
+  p.className = 'log-' + type;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+
+  // Also mirror to output buffer
+  if (logId !== 'output-log') {
+    appendLog('output-log', msg, type);
+  }
+}
+
+// ── NOTIFICATION TOAST ───────────────────────────────────
+let notifTimeout;
+function showNotification(msg, type='ok') {
+  const el = document.getElementById('notification');
+  el.textContent = msg;
+  el.className = type === 'err' ? 'error' : '';
+  el.style.display = 'block';
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE: IDENTITY FORGER
+// ═══════════════════════════════════════════════════════
+let lastIdentity = null;
+
+async function forgeIdentity() {
+  const btn = document.getElementById('btn-forge-identity');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> FORGING...';
+  document.getElementById('id-status').textContent = 'PROCESSING...';
+  document.getElementById('id-status').style.color = 'var(--text-dim)';
+
+  appendLog('identity-log', '[PROCESS] Forging new ghost identity...', 'process');
+
+  try {
+    const res = await fetch(API + '/api/identity/forge', { method: 'POST' });
+    const json = await res.json();
+
+    if (json.success) {
+      lastIdentity = json.data;
+      document.getElementById('id-name').textContent     = lastIdentity.name;
+      document.getElementById('id-dob').textContent      = lastIdentity.dob;
+      document.getElementById('id-age').textContent      = lastIdentity.age + ' YEARS';
+      document.getElementById('id-location').textContent = lastIdentity.location;
+      document.getElementById('id-status').textContent   = 'IDENTITY FORGED ✓';
+      document.getElementById('id-status').style.color   = 'var(--primary)';
+      document.getElementById('btn-save-identity').disabled = false;
+
+      appendLog('identity-log', `[OK] ALIAS: ${lastIdentity.name} | DOB: ${lastIdentity.dob} | LOC: ${lastIdentity.location}`, 'ok');
+    }
+  } catch(e) {
+    document.getElementById('id-status').textContent = 'ERROR — BACKEND OFFLINE';
+    document.getElementById('id-status').style.color = 'var(--accent)';
+    appendLog('identity-log', '[ERR] Could not reach backend. Start the Java server.', 'err');
+    showNotification('Backend offline — start run.bat', 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.1rem;">person_add</span> [ FORGE IDENTITY ]';
+}
+
+function openSaveDialog() {
+  document.getElementById('save-dialog').style.display = 'block';
+  document.getElementById('id-tag').focus();
+}
+function cancelSave() {
+  document.getElementById('save-dialog').style.display = 'none';
+}
+
+async function saveIdentity() {
+  const tag = document.getElementById('id-tag').value.trim();
+  if (!tag) { showNotification('Enter a tag before committing.', 'err'); return; }
+  if (!lastIdentity) return;
+
+  appendLog('identity-log', `[PROCESS] Committing identity "${lastIdentity.name}" with tag "${tag}"...`, 'process');
+
+  try {
+    const res = await fetch(API + '/api/identity/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tag, name: lastIdentity.name, dob: lastIdentity.dob, location: lastIdentity.location
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      appendLog('identity-log', `[OK] Identity committed to vault file.`, 'ok');
+      showNotification('Identity saved to titan_identities.txt', 'ok');
+      cancelSave();
+      document.getElementById('id-tag').value = '';
+    }
+  } catch(e) {
+    appendLog('identity-log', '[ERR] Save failed — backend offline.', 'err');
+    showNotification('Save failed — backend offline.', 'err');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE: TITAN VAULT
+// ═══════════════════════════════════════════════════════
+function updateLengthDisplay(val) {
+  document.getElementById('length-display').textContent = val;
+  document.getElementById('entropy-len').textContent = val;
+  // Entropy = length × log2(90) ≈ length × 6.492
+  document.getElementById('entropy-bits').textContent = (val * 6.492).toFixed(1);
+}
+
+async function generatePassword() {
+  const account = document.getElementById('vault-account').value.trim();
+  if (!account) {
+    showNotification('Enter an account name before forging.', 'err');
+    document.getElementById('vault-account').focus();
+    return;
+  }
+
+  const length = parseInt(document.getElementById('length-slider').value, 10);
+  const btn = document.getElementById('btn-generate-pass');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> FORGING KEY...';
+  document.getElementById('vault-status').textContent = 'GENERATING...';
+  document.getElementById('vault-status').style.color = 'var(--text-dim)';
+
+  appendLog('vault-log', `[PROCESS] Forging key for account "${account}" at length ${length}...`, 'process');
+
+  try {
+    const res = await fetch(API + '/api/vault/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accountName: account, length })
+    });
+    const json = await res.json();
+
+    if (json.success) {
+      const data = json.data;
+      document.getElementById('vault-account-out').textContent  = data.accountName;
+      document.getElementById('vault-password-out').textContent = data.password;
+      document.getElementById('vault-length-out').textContent   = data.length + ' CHARS';
+      document.getElementById('vault-status').textContent       = 'KEY FORGED ✓';
+      document.getElementById('vault-status').style.color       = 'var(--primary)';
+
+      appendLog('vault-log', `[OK] Key forged: ${data.password.substring(0,6)}****** (${data.length} chars)`, 'ok');
+      appendLog('vault-log', `[OK] Committed to titan_keys.txt.`, 'ok');
+      showNotification('Key forged and saved to titan_keys.txt', 'ok');
+    }
+  } catch(e) {
+    document.getElementById('vault-status').textContent = 'ERROR — BACKEND OFFLINE';
+    document.getElementById('vault-status').style.color = 'var(--accent)';
+    appendLog('vault-log', '[ERR] Could not reach backend. Start the Java server.', 'err');
+    showNotification('Backend offline — start run.bat', 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.1rem;">key</span> [ FORGE KEY ]';
+}
+
+async function copyPassword() {
+  const pw = document.getElementById('vault-password-out').textContent;
+  if (pw === '—') return;
+  try {
+    await navigator.clipboard.writeText(pw);
+    document.getElementById('copy-btn').textContent = '[ COPIED ✓ ]';
+    setTimeout(() => document.getElementById('copy-btn').textContent = '[ COPY ]', 2000);
+  } catch {}
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE: SCHEMA EDITOR
+// ═══════════════════════════════════════════════════════
+const fieldTypes = ['UUID','STRING','NAME','NUMBER','BOOLEAN','EMAIL','DATE','IP_ADDRESS','URL'];
+let schemaFields = [
+  { name: 'user_id',    type: 'UUID',   constraint: 'primary_key=true' },
+  { name: 'first_name', type: 'NAME',   constraint: '' },
+];
+
+function renderSchema() {
+  const container = document.getElementById('schema-fields');
+  container.innerHTML = '';
+  schemaFields.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+    row.innerHTML = `
+      <span style="color:var(--text-dim);font-size:0.65rem;min-width:22px;">${String(i+1).padStart(2,'0')}</span>
+      <input class="field-input" style="width:140px;" value="${f.name}" placeholder="field_name"
+             onchange="schemaFields[${i}].name=this.value;updateSchemaPreview()"/>
+      <select class="field-input" style="width:120px;" onchange="schemaFields[${i}].type=this.value;updateSchemaPreview()">
+        ${fieldTypes.map(t => `<option ${t===f.type?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <input class="field-input" style="flex:1;" value="${f.constraint}" placeholder="constraints (e.g. max=100)"
+             onchange="schemaFields[${i}].constraint=this.value;updateSchemaPreview()"/>
+      <button class="btn small danger" onclick="removeField(${i})" style="padding:6px 10px;">[X]</button>
+    `;
+    container.appendChild(row);
+  });
+  updateSchemaPreview();
+}
+
+function addSchemaField() {
+  schemaFields.push({ name: 'field_' + (schemaFields.length+1), type: 'STRING', constraint: '' });
+  renderSchema();
+}
+
+function removeField(i) {
+  schemaFields.splice(i, 1);
+  renderSchema();
+}
+
+function updateSchemaPreview() {
+  const obj = { schema: {} };
+  schemaFields.forEach(f => {
+    const entry = { type: f.type };
+    if (f.constraint) {
+      f.constraint.split(',').forEach(c => {
+        const parts = c.trim().split('=');
+        if (parts.length === 2) {
+          const v = isNaN(parts[1]) ? (parts[1]==='true'?true:parts[1]==='false'?false:parts[1]) : Number(parts[1]);
+          entry[parts[0].trim()] = v;
+        }
+      });
+    }
+    obj.schema[f.name || '???'] = entry;
+  });
+  document.getElementById('schema-preview').textContent = JSON.stringify(obj, null, 2);
+}
+
+// Init schema
+renderSchema();
+</script>
+</body>
+</html>
